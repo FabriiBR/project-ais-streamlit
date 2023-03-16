@@ -6,6 +6,7 @@ import datetime as dt
 import requests
 import json
 import plotly.express as px
+import plotly.graph_objects as pg
 
 st.set_page_config(page_title='AIS Project', page_icon='💰', layout='wide', initial_sidebar_state="collapsed" )
 
@@ -21,6 +22,9 @@ def prediction_url(date, number, risk,industries=None):
     
     url = f"http://127.0.0.1:8000/predict?year={params['year']}&week={params['week']}&investment={number}&risk={risk}&industries={industries}"
     return url
+
+def change_week(x):
+    return dt.datetime.strptime(x +'-1',"%Y-W%W-%w")
 
 def historic_url(date, number, risk,industries=None):
     params = dict(
@@ -135,10 +139,12 @@ def main():
     row0_spacer1, row0_1, row_spacer2 = st.columns((.1, 2.3,.1))
     with row0_1:
         st.subheader('Recommendations')
-
-        space, g1,spacef = st.columns((.1,1,.1))
         
         earnings_df = json.loads(historic['data'])
+        e_df = pd.DataFrame(columns=earnings_df['columns'], data=earnings_df['data'])
+        e_df['formatted_date'] = e_df['pred_year'] * 1000 + e_df['pred_week'] * 10 + 0
+        e_df['datew'] = pd.to_datetime(e_df['formatted_date'], format='%Y%W%w')
+        e_df.drop(columns=['pred_year','pred_earnings_pct','real_earnings_pct'], inplace=True)
         
         real_earn_df = pd.DataFrame(columns=earnings_df['columns'], data=earnings_df['data'])
         real_earn_df['Year-Week'] = real_earn_df['pred_year'].astype(str) + '--' + real_earn_df['pred_week'].astype(str)
@@ -169,15 +175,22 @@ def main():
             title='Prediction Earnings',
             color_discrete_sequence=["#9EE6CF"]
         )
+
+    fig = px.bar(e_df, x='datew', y=['real_earnings','pred_earnings'])
+    fig.update_layout(barmode='group')
+    fig.update_layout(
+        title='Comparative 2023 earnings',
+        xaxis_title="Week",
+        yaxis_title="Earnings")
+    st.plotly_chart(fig, theme="streamlit", use_container_width=True)
         
-        col1_s,col1, col2, col2_s = st.columns((.1,1,1,.1))
-        with col1:
-            st.metric(label='Total prediction earnings', value=str(int(pred_total_earnings))+"$", delta=str(float(pred_roi))+' ROI')
-            st.plotly_chart(fig_pred, theme="streamlit", use_container_width=True)
-        with col2:
-            st.metric(label='Total real earnings', value=str(int(real_total_earnings))+"$", delta=str(float(real_roi))+' ROI')
-            st.plotly_chart(fig_real, theme="streamlit", use_container_width=True)
-        
+    col1_s,col1, col2, col2_s = st.columns((.1,1,1,.1))
+    with col1:
+        st.metric(label='Total prediction earnings', value=str(int(pred_total_earnings))+"$", delta=str(float(pred_roi))+' ROI')
+        st.plotly_chart(fig_pred, theme="streamlit", use_container_width=True)
+    with col2:
+        st.metric(label='Total real earnings', value=str(int(real_total_earnings))+"$", delta=str(float(real_roi))+' ROI')
+        st.plotly_chart(fig_real, theme="streamlit", use_container_width=True)
     
     # fgdf = pd.read_excel('DataforMock.xlsx',sheet_name = 'Graph')
     
