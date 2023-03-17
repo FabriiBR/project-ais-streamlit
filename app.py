@@ -20,7 +20,7 @@ def prediction_url(date, number, risk,industries=None):
                 #industries = ind
             )
     
-    url = f"http://127.0.0.1:8000/predict?year={params['year']}&week={params['week']}&investment={number}&risk={risk}&industries={industries}"
+    url = f"https://api-project-ais-sx52vvq4bq-as.a.run.app/predict?year={params['year']}&week={params['week']}&investment={number}&risk={risk}&industries={industries}"
     return url
 
 def change_week(x):
@@ -36,7 +36,7 @@ def historic_url(date, number, risk,industries=None):
                 #industries = ind
             )
     
-    url = f"http://127.0.0.1:8000/historic?year={params['year']}&week={params['week']}&investment={number}&risk={risk}&industries={industries}"
+    url = f"https://api-project-ais-sx52vvq4bq-as.a.run.app//historic?year={params['year']}&week={params['week']}&investment={number}&risk={risk}&industries={industries}"
     return url
 
 def fetch_prediction(url):
@@ -176,7 +176,7 @@ def main():
             color_discrete_sequence=["#9EE6CF"]
         )
 
-    fig = px.bar(e_df, x='datew', y=['real_earnings','pred_earnings'])
+    fig = px.bar(e_df, x='pred_week', y=['real_earnings','pred_earnings'])
     fig.update_layout(barmode='group')
     fig.update_layout(
         title='Comparative 2023 earnings',
